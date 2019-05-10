@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist", // path to output directory
+    "baseUrl": "./src/server",
+    "sourceMap": true, // allow sourcemap support
+    "strict": true, // Turn on all strict checks
+    "module": "commonjs", // specify module code generation
+    "moduleResolution": "node",
+    "pretty": true,
+    "target": "es6", // specify ECMAScript target version
+    "allowJs": true, // allow a partial TypeScript and JavaScript codebase
+    "lib": ["es2015"]
+  },
+  "exclude": ["node_modules"],
+  "types": []
+}
