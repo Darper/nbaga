@@ -3,6 +3,7 @@ import * as cors from "cors";
 import { Request, Response } from "express";
 import * as bodyParser from "body-parser";
 import { data } from "./Data/handlers";
+import { algorithm } from "./Algorithm/handlers";
 
 class App {
   constructor() {
@@ -24,6 +25,7 @@ class App {
     this.app.use(cors());
 
     this.app.use(data);
+    this.app.use(algorithm);
 
     router.get("/", (req: Request, res: Response) => {
       res.send({ express: "YOUR EXPRESS BACKEND IS CONNECTED TO REACT" });

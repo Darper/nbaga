@@ -10,7 +10,7 @@ function App() {
 
   // Fetches our GET route from the Express server. (Note the route we are fetching matches the GET route from server.ts
   const callBackendAPI = async () => {
-    return axios.get("/wins/2018/MIN").then(res => {
+    return axios.get("/algorithm").then(res => {
       return res.data;
     });
   };

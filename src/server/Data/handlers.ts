@@ -1,11 +1,8 @@
 import { Request, Response, Router } from "express";
-import { wins } from "../json/wins";
-import { playerStats } from "../json/playerStats";
-import { IWins, IAllStats, IPlayer } from "../common/interfaces";
+import { IPlayer } from "../common/interfaces";
+import { winsArray, allStats } from "../common/data";
 
 const router: Router = Router();
-const winsArray: IWins = wins;
-const allStats: IAllStats = playerStats;
 
 export function getWins(req: Request, res: Response) {
   const year = req.params.year;
