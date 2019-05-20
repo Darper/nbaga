@@ -14,42 +14,80 @@ function getRandomArbitrary(min: number, max: number) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-function newTree(player: { [index: string]: IPlayer }): string {
+function newValue(value: boolean): string {
+  let valueString = "";
+  if (value) {
+    const randomAttributeIndex = getRandomArbitrary(0, columns.length);
+    const randomAttribute = columns[randomAttributeIndex];
+    const playerAttributeValue = `currentPlayer['${randomAttribute}']`;
+    valueString = `${playerAttributeValue}`;
+  } else {
+    const randomValue = Math.random() * 10;
+    const randomString = randomValue.toString();
+    valueString = `${randomString}`;
+  }
+  return valueString;
+}
+
+function newValueCombination(level: number): string {
+  const whichOperator = Math.floor(Math.random() * 3);
+  let operator = "+";
+  switch (whichOperator) {
+    case 0:
+      operator = "-";
+      break;
+    case 1:
+      operator = "*";
+      break;
+    case 2:
+      operator = "/";
+      break;
+    default:
+      operator = "+";
+  }
+  const side1 = newTree(true, level);
+  const side2 = newTree(true, level);
+  return "(" + side1 + operator + side2 + ")";
+}
+
+function newTree(previous: boolean, level?: number): string {
+  let currentLevel = level || 0;
+  let functionString = "";
   const numberOrOperator = Math.floor(Math.random() * 100);
-  if (numberOrOperator < 52) {
-    if (numberOrOperator < 26) {
-      const randomAttributeIndex = getRandomArbitrary(0, columns.length);
-      const randomAttribute = columns[randomAttributeIndex];
-      const playerAttributeValue = player[randomAttribute];
-      return playerAttributeValue.toString();
+  if ((currentLevel > 0 && numberOrOperator < 50) || currentLevel === 4) {
+    const currentStat =
+      numberOrOperator < 25 ? newValue(true) : newValue(false);
+    if (previous) {
+      return currentStat;
     } else {
-      const randomValue = Math.random() * 10;
-      return randomValue.toString();
+      functionString = functionString + currentStat;
     }
   } else {
-    if (numberOrOperator < 64) {
-      return newTree(player) + " + " + newTree(player);
-    } else if (numberOrOperator < 76) {
-      return newTree(player) + " - " + newTree(player);
-    } else if (numberOrOperator < 88) {
-      return newTree(player) + " * " + newTree(player);
+    currentLevel++;
+    const newCombination = newValueCombination(currentLevel);
+    if (previous) {
+      return newCombination;
     } else {
-      return newTree(player) + " / " + newTree(player);
+      functionString = functionString + newCombination;
     }
   }
+
+  return functionString;
 }
 
 function calculateWins(
   roster: IPlayer[],
-  population: Function[],
+  population: string[],
   teamWins: number
 ): number {
   let allValues: IResult[] = [];
-  population.map((child: Function) => {
+  let playerEquation: Function = function() {};
+  population.map((child: string) => {
     let childValue = 0;
+    playerEquation = new Function("currentPlayer", `return ${child}`);
+    console.log(playerEquation.toString());
     roster.map((player: IPlayer) => {
-      const playerEquation = child(player);
-      const playerValue = eval(playerEquation);
+      const playerValue = playerEquation(player);
       childValue = childValue + playerValue;
     });
     if (childValue < teamWins && childValue <= 0) {
@@ -63,7 +101,7 @@ function calculateWins(
     }
     allValues.push({
       value: childValue,
-      child: child.toString()
+      child: playerEquation.toString()
     });
   });
   allValues.sort(function(a, b) {
@@ -73,17 +111,12 @@ function calculateWins(
   return allValues[0].value;
 }
 
-function createPopulation(): Function[] {
+function createPopulation(): string[] {
   let num: number = 0;
   let i: number;
-  let population: Function[] = [];
+  let population: string[] = [];
   for (i = num; i < populationSize; i++) {
-    const fitnessFunction = function(player: {
-      [index: string]: IPlayer;
-    }): string {
-      return newTree(player);
-    };
-    population.push(fitnessFunction);
+    population.push(newTree(false));
   }
   return population;
 }
