@@ -71,7 +71,6 @@ function newTree(previous: boolean, level?: number): string {
       functionString = functionString + newCombination;
     }
   }
-
   return functionString;
 }
 
@@ -79,13 +78,12 @@ function calculateWins(
   roster: IPlayer[],
   population: string[],
   teamWins: number
-): number {
+): IResult[] {
   let allValues: IResult[] = [];
   let playerEquation: Function = function() {};
   population.map((child: string) => {
     let childValue = 0;
     playerEquation = new Function("currentPlayer", `return ${child}`);
-    console.log(playerEquation.toString());
     roster.map((player: IPlayer) => {
       const playerValue = playerEquation(player);
       childValue = childValue + playerValue;
@@ -104,11 +102,8 @@ function calculateWins(
       child: playerEquation.toString()
     });
   });
-  allValues.sort(function(a, b) {
-    return a.value - b.value;
-  });
   console.log(allValues);
-  return allValues[0].value;
+  return allValues;
 }
 
 function createPopulation(): string[] {
@@ -122,12 +117,32 @@ function createPopulation(): string[] {
 }
 
 export function getAlgorithmResults(req: Request, res: Response) {
-  const winPercent = winsArray[2018]["MIN"];
-  const roster = allStats[2018]["MIN"];
+  let totalWins: IResult[] = [];
   const population = createPopulation();
-  const teamWins = winsArray[2018]["MIN"];
-  const wins = calculateWins(roster, population, teamWins);
-  res.send({ express: wins });
+  for (var property in allStats[2018]) {
+    if (allStats[2018].hasOwnProperty(property)) {
+      const roster = allStats[2018][property];
+      const teamWinPercentage = winsArray[2018][property];
+      const teamWins = calculateWins(roster, population, teamWinPercentage);
+      teamWins.map((result: IResult, index: number) => {
+        if (typeof totalWins[index] === "undefined") {
+          totalWins[index] = { child: "", value: 0 };
+          totalWins[index].child = result.child;
+          totalWins[index].value = result.value;
+        } else {
+          totalWins[index].value = totalWins[index].value + result.value;
+        }
+      });
+    }
+  }
+  totalWins.map((result: IResult) => {
+    result.value = result.value / 2;
+  });
+  totalWins.sort(function(a, b) {
+    return a.value - b.value;
+  });
+  console.log(totalWins[0].child);
+  res.send({ express: totalWins[0].value });
 }
 
 router.get("/algorithm/", getAlgorithmResults);
